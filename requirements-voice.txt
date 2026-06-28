@@ -1,0 +1,5 @@
+pyaudio==0.2.14
+vosk==0.3.45
+gpiozero==2.0
+spidev==3.6
+RPi.GPIO==0.7.1

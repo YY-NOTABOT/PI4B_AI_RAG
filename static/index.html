@@ -1,0 +1,415 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>智能就医导向系统</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --ink: #1d2433;
+        --muted: #5f6b7a;
+        --line: #d9e1e8;
+        --panel: #ffffff;
+        --page: #f5f8fb;
+        --primary: #16796f;
+        --primary-dark: #0f5e56;
+        --accent: #d77a28;
+        --soft: #e7f3f1;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+        background: var(--page);
+        color: var(--ink);
+      }
+
+      .shell {
+        min-height: 100vh;
+        display: grid;
+        grid-template-rows: auto 1fr;
+      }
+
+      header {
+        background: #0f2f3a;
+        color: #fff;
+        padding: 22px clamp(18px, 5vw, 56px);
+        border-bottom: 5px solid var(--primary);
+      }
+
+      header h1 {
+        margin: 0;
+        font-size: clamp(24px, 4vw, 38px);
+        font-weight: 750;
+        letter-spacing: 0;
+      }
+
+      header p {
+        margin: 8px 0 0;
+        color: #cfe2e5;
+        font-size: 16px;
+      }
+
+      main {
+        width: min(1120px, 100%);
+        margin: 0 auto;
+        padding: clamp(18px, 4vw, 40px);
+        display: grid;
+        gap: 20px;
+      }
+
+      .consult {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: clamp(18px, 4vw, 28px);
+        box-shadow: 0 10px 30px rgba(20, 44, 60, 0.08);
+      }
+
+      label {
+        display: block;
+        font-weight: 700;
+        margin-bottom: 12px;
+        font-size: 18px;
+      }
+
+      textarea {
+        width: 100%;
+        min-height: 132px;
+        resize: vertical;
+        border: 1px solid #b8c6d1;
+        border-radius: 8px;
+        padding: 16px;
+        font: inherit;
+        font-size: 18px;
+        color: var(--ink);
+        background: #fbfdff;
+      }
+
+      textarea:focus {
+        outline: 3px solid rgba(22, 121, 111, 0.2);
+        border-color: var(--primary);
+      }
+
+      .actions {
+        display: flex;
+        gap: 14px;
+        align-items: center;
+        flex-wrap: wrap;
+        margin-top: 16px;
+      }
+
+      button {
+        border: 0;
+        border-radius: 8px;
+        background: var(--primary);
+        color: #fff;
+        min-height: 48px;
+        padding: 0 22px;
+        font: inherit;
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      button:hover {
+        background: var(--primary-dark);
+      }
+
+      button:disabled {
+        opacity: 0.65;
+        cursor: wait;
+      }
+
+      .status {
+        color: var(--muted);
+      }
+
+      .result-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 16px;
+      }
+
+      .card {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 18px;
+        min-height: 150px;
+      }
+
+      .card h2,
+      .advice h2 {
+        margin: 0 0 12px;
+        font-size: 18px;
+      }
+
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        min-height: 34px;
+        border-radius: 999px;
+        background: var(--soft);
+        color: #0d5f56;
+        padding: 6px 12px;
+        font-weight: 650;
+      }
+
+      .chip.warn {
+        background: #fff1df;
+        color: #8a4b0d;
+      }
+
+      .advice {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-left: 5px solid var(--accent);
+        border-radius: 8px;
+        padding: 18px;
+      }
+
+      .advice p {
+        margin: 0;
+        line-height: 1.75;
+        color: #273447;
+      }
+
+      .warnings {
+        color: #805000;
+        line-height: 1.6;
+        font-size: 14px;
+      }
+
+      .health-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .metric {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 12px;
+        background: #fbfdff;
+        min-height: 86px;
+      }
+
+      .metric span {
+        display: block;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .metric strong {
+        display: block;
+        margin-top: 8px;
+        font-size: 20px;
+        color: var(--ink);
+      }
+
+      .empty {
+        color: var(--muted);
+      }
+
+      @media (max-width: 760px) {
+        .result-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .health-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        header p {
+          font-size: 14px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <header>
+        <h1>智能就医导向系统</h1>
+        <p>输入症状描述，系统基于本地知识库给出就医方向参考。</p>
+      </header>
+
+      <main>
+        <section class="consult">
+          <label for="query">症状描述</label>
+          <textarea id="query" placeholder="例如：发烧、咳嗽、嗓子痛两天，晚上体温比较高"></textarea>
+          <div class="actions">
+            <button id="submit" type="button">开始查询</button>
+            <span id="status" class="status"></span>
+          </div>
+        </section>
+
+        <section class="result-grid" aria-live="polite">
+          <article class="card">
+            <h2>可能病名</h2>
+            <div id="diseases" class="chips"><span class="empty">等待查询</span></div>
+          </article>
+          <article class="card">
+            <h2>建议药物</h2>
+            <div id="medicines" class="chips"><span class="empty">等待查询</span></div>
+          </article>
+          <article class="card">
+            <h2>推荐科室</h2>
+            <div id="departments" class="chips"><span class="empty">等待查询</span></div>
+          </article>
+        </section>
+
+        <section class="advice">
+          <h2>导向建议</h2>
+          <p id="advice">结果仅用于社区就医导向展示，不能替代医生诊断。</p>
+        </section>
+
+        <section class="advice">
+          <h2>健康指标</h2>
+          <div id="health-grid" class="health-grid">
+            <div class="metric"><span>睡眠时长</span><strong>等待查询</strong></div>
+            <div class="metric"><span>静息心率</span><strong>等待查询</strong></div>
+            <div class="metric"><span>近期心率</span><strong>等待查询</strong></div>
+            <div class="metric"><span>血氧</span><strong>设备不支持</strong></div>
+          </div>
+          <p id="health-advice" style="margin-top: 14px;">手环数据仅作为健康参考，不能替代医生诊断或专业医疗设备检测。</p>
+        </section>
+
+        <section id="warnings" class="warnings"></section>
+      </main>
+    </div>
+
+    <script>
+      const queryEl = document.querySelector("#query");
+      const submitEl = document.querySelector("#submit");
+      const statusEl = document.querySelector("#status");
+      const adviceEl = document.querySelector("#advice");
+      const healthGridEl = document.querySelector("#health-grid");
+      const healthAdviceEl = document.querySelector("#health-advice");
+      const warningsEl = document.querySelector("#warnings");
+
+      const groups = {
+        diseases: document.querySelector("#diseases"),
+        medicines: document.querySelector("#medicines"),
+        departments: document.querySelector("#departments"),
+      };
+
+      submitEl.addEventListener("click", consult);
+      queryEl.addEventListener("keydown", (event) => {
+        if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
+          consult();
+        }
+      });
+
+      async function consult() {
+        const query = queryEl.value.trim();
+        if (!query) {
+          statusEl.textContent = "请先输入症状描述。";
+          queryEl.focus();
+          return;
+        }
+
+        submitEl.disabled = true;
+        statusEl.textContent = "正在解析并查询本地知识库...";
+        warningsEl.textContent = "";
+
+        try {
+          const response = await fetch("/api/consult", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ query }),
+          });
+          const data = await response.json();
+          if (!response.ok) {
+            throw new Error(data.detail || "查询失败");
+          }
+          renderList(groups.diseases, data.diseases, "未匹配");
+          renderList(groups.medicines, data.medicines, "暂无建议");
+          renderList(groups.departments, data.departments, "建议咨询全科");
+          adviceEl.textContent = data.advice || "未生成建议。";
+          renderHealth(data.health_metrics, data.health_advice);
+          warningsEl.textContent = [...(data.warnings || []), ...(data.health_warnings || [])].join(" ");
+          statusEl.textContent = data.symptoms?.length ? `已识别症状：${data.symptoms.join("、")}` : "查询完成";
+        } catch (error) {
+          statusEl.textContent = error.message;
+        } finally {
+          submitEl.disabled = false;
+        }
+      }
+
+      function renderList(container, values, emptyText) {
+        container.innerHTML = "";
+        if (!values || values.length === 0) {
+          const span = document.createElement("span");
+          span.className = "empty";
+          span.textContent = emptyText;
+          container.appendChild(span);
+          return;
+        }
+        values.forEach((value) => {
+          const span = document.createElement("span");
+          span.className = "chip";
+          span.textContent = value;
+          container.appendChild(span);
+        });
+      }
+
+      function renderHealth(metrics, healthAdvice) {
+        const stages = metrics?.sleep_stages || {};
+        const sleepText = Number.isFinite(metrics?.sleep_minutes)
+          ? `${(metrics.sleep_minutes / 60).toFixed(1)} 小时`
+          : "暂无数据";
+        const restingText = Number.isFinite(metrics?.resting_heart_rate)
+          ? `${metrics.resting_heart_rate} 次/分`
+          : "暂无数据";
+        const recentHeartRate = metrics?.latest_heart_rate || metrics?.avg_heart_rate;
+        const heartText = Number.isFinite(recentHeartRate) ? `${recentHeartRate} 次/分` : "暂无数据";
+        const stageText = formatStages(stages);
+        const syncedText = metrics?.synced_at || "未同步";
+
+        healthGridEl.innerHTML = "";
+        [
+          ["睡眠时长", sleepText],
+          ["睡眠阶段", stageText],
+          ["静息心率", restingText],
+          ["近期心率", heartText],
+          ["同步时间", syncedText],
+          ["血氧", "设备不支持"],
+        ].forEach(([label, value]) => {
+          const item = document.createElement("div");
+          item.className = "metric";
+          const title = document.createElement("span");
+          title.textContent = label;
+          const content = document.createElement("strong");
+          content.textContent = value;
+          item.append(title, content);
+          healthGridEl.appendChild(item);
+        });
+        healthAdviceEl.textContent =
+          healthAdvice || "暂未获取到可用手环健康指标，本次建议仅基于症状描述和本地知识库。";
+      }
+
+      function formatStages(stages) {
+        const values = [
+          ["深睡", stages.deep_minutes],
+          ["浅睡", stages.light_minutes],
+          ["REM", stages.rem_minutes],
+          ["清醒", stages.awake_minutes],
+        ]
+          .filter(([, value]) => Number.isFinite(value))
+          .map(([label, value]) => `${label}${value}分`);
+        return values.length ? values.join(" ") : "暂无数据";
+      }
+    </script>
+  </body>
+</html>

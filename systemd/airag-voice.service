@@ -1,0 +1,15 @@
+[Unit]
+Description=AI RAG ReSpeaker voice service
+After=network-online.target sound.target airag-web.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/yy-notabot/AI_RAG
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/home/yy-notabot/AI_RAG/.venv/bin/python voice_service.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
